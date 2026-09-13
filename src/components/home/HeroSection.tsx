@@ -98,7 +98,7 @@ export function HeroSection() {
 
           {/* CTAs */}
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row flex-wrap gap-4 md:gap-6 mb-10 md:mb-12 w-full sm:w-auto">
-            <Button size="lg" className="w-full sm:w-auto rounded-none font-orbitron font-bold tracking-widest uppercase bg-[#2463FF] text-white border border-[#2463FF] hover:bg-white hover:text-black hover:border-white px-6 md:px-8 py-5 md:py-6 text-xs md:text-sm transition-all shadow-[0_0_20px_rgba(36,99,255,0.4)]">
+            <Button size="lg" href="/our-story" className="w-full sm:w-auto rounded-none font-orbitron font-bold tracking-widest uppercase bg-[#2463FF] text-white border border-[#2463FF] hover:bg-white hover:text-black hover:border-white px-6 md:px-8 py-5 md:py-6 text-xs md:text-sm transition-all shadow-[0_0_20px_rgba(36,99,255,0.4)]">
               ▶ WATCH ORG STORY
             </Button>
             <Button variant="outline" size="lg" href="/compete/browse" className="w-full sm:w-auto rounded-none font-orbitron font-bold tracking-widest uppercase border-white/20 text-white hover:text-[#2463FF] hover:border-[#2463FF] bg-black/50 backdrop-blur-md px-6 md:px-8 py-5 md:py-6 text-xs md:text-sm transition-all">

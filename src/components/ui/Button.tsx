@@ -1,10 +1,25 @@
 import React from 'react';
+import Link from 'next/link';
 
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+type BaseProps = {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
+  className?: string;
+  children?: React.ReactNode;
 };
+
+type ButtonAsButton = BaseProps &
+  Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps> & {
+    href?: undefined;
+  };
+
+type ButtonAsLink = BaseProps &
+  Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof BaseProps> & {
+    href: string;
+  };
+
+export type ButtonProps = ButtonAsButton | ButtonAsLink;
 
 export function Button({
   children,
@@ -30,11 +45,25 @@ export function Button({
   };
 
   const widthClass = fullWidth ? 'w-full' : '';
+  const combinedClassName = `${baseStyles} ${variants[variant]} ${sizes[size]} ${widthClass} ${className}`;
+
+  if ('href' in props && props.href) {
+    const { href, ...linkProps } = props;
+    return (
+      <Link
+        href={href}
+        className={combinedClassName}
+        {...(linkProps as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
+      >
+        {children}
+      </Link>
+    );
+  }
 
   return (
     <button
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${widthClass} ${className}`}
-      {...props}
+      className={combinedClassName}
+      {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}
     >
       {children}
     </button>
