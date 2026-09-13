@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #09090b; /* zinc-950 */
+    --foreground: #f4f4f5; /* zinc-100 */
+  }
+  
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    @apply font-inter selection:bg-ms-blue selection:text-ms-white antialiased;
+  }
+
+  /* Typography strict definitions */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-orbitron font-bold tracking-wide;
+  }
+  h1 { @apply text-4xl md:text-5xl lg:text-7xl; text-wrap: balance; }
+  h2 { @apply text-3xl md:text-4xl; }
+  h3 { @apply text-xl md:text-2xl; }
+  
+  p { @apply text-ms-white-90 text-sm md:text-base leading-relaxed; }
+  
+  /* Grayscale filter for images - softened */
+  img {
+    transition: filter 0.3s ease, mix-blend-mode 0.3s ease;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .halftone-bg {
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 8px 8px;
+  }
+
+  .scanline-bg {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 2px,
+      rgba(24, 24, 27, 0.4) 2px,
+      rgba(24, 24, 27, 0.4) 4px
+    );
+  }
+
+  /* Framer-style matte panel */
+  .glass-panel {
+    @apply bg-[#111111] hover:bg-[#151515] transition-colors duration-300 border border-white/[0.04] rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.5)];
+  }
+
+  /* Sleek Blue Button */
+  .btn-primary-glow {
+    @apply bg-[#0099ff] hover:bg-[#33adff] text-white font-semibold px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm;
+  }
+
+  /* Standard secondary rounded button */
+  .btn-secondary {
+    @apply bg-ms-panel-black border border-ms-border-dark hover:border-ms-white-60 text-ms-white px-4 py-2 rounded-lg transition-all active:scale-95;
+  }
+
+  .ms-clip-path {
+    clip-path: polygon(0 0, 100% 0, 100% 94%, 0 100%);
+  }
+}
