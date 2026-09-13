@@ -10,7 +10,7 @@ export function Navbar() {
   const { user, signOut } = useAuth();
 
   const portalRoutes = ['/admin', '/home', '/tournaments', '/team', '/profile', '/apply-org', '/org', '/compete', '/leaderboards', '/community'];
-  if (user || portalRoutes.some(route => pathname.startsWith(route))) return null;
+  if (portalRoutes.some(route => pathname.startsWith(route))) return null;
 
   return (
     <nav className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-ms-border-dark">
@@ -31,13 +31,14 @@ export function Navbar() {
           <div className="hidden md:flex space-x-8">
             {user ? (
               <>
+                <NavLink href="/">Home</NavLink>
                 <NavLink href="/home">Dashboard</NavLink>
                 <NavLink href="/team">My Team</NavLink>
                 <NavLink href="/profile">Profile</NavLink>
               </>
             ) : (
               <>
-                <NavLink href="/home">Home</NavLink>
+                <NavLink href="/">Home</NavLink>
                 <NavLink href="/services">Services</NavLink>
                 <NavLink href="/blog">Blog</NavLink>
                 <NavLink href="/our-story">Our Story</NavLink>

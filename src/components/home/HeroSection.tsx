@@ -27,7 +27,12 @@ export function HeroSection() {
     <section className="relative w-full h-[90vh] min-h-[700px] flex items-center overflow-hidden bg-black">
       
       {/* BACKGROUND LAYERS as per V2 Spec */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <img 
+          src="/hero-bg.webp" 
+          alt="Magadh Striker Esports" 
+          className="absolute inset-0 w-full h-full object-cover object-right md:object-center opacity-60"
+        />
         <WebGLAscii imageSrc="/hero-bg.webp?v=2" />
       </div>
 

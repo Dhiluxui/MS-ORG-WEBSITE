@@ -10,12 +10,10 @@ import { Sponsors } from "@/components/home/Sponsors";
 import { CommunityJoinCTA } from "@/components/home/CommunityJoinCTA";
 import Link from "next/link";
 import { HeroSection } from "@/components/home/HeroSection";
-import { AuthRedirect } from "@/components/auth/AuthRedirect";
 
 export default function Home() {
   return (
     <>
-      <AuthRedirect />
       <HeroSection />
 
       {/* S2: STATS TICKER */}

@@ -1,12 +1,13 @@
 "use server";
 
 import { createClient } from '@/lib/supabase/server';
+import { Tournament } from '@/lib/services/tournaments';
 
 export async function getAdminDashboardStats() {
   const supabase = await createClient();
   
   // Get Tournaments
-  const { data: tournaments, error: tourError } = await supabase
+  const { data: rawTournaments, error: tourError } = await supabase
     .from('tournaments')
     .select('*');
     
@@ -22,32 +23,49 @@ export async function getAdminDashboardStats() {
     };
   }
 
-  const activeTours = tournaments?.filter(t => t.status === 'registering' || t.status === 'live' || t.status === 'published' || (t.status as string).toUpperCase() === 'UPCOMING' || (t.status as string).toUpperCase() === 'LIVE').length || 0;
-  const liveNow = tournaments?.filter(t => t.status === 'live' || (t.status as string).toUpperCase() === 'LIVE').length || 0;
+  const tournaments = rawTournaments as unknown as Tournament[] | null;
+
+  const activeTours = tournaments?.filter(t => {
+    const s = (t.status || '').toLowerCase();
+    return s === 'registering' || s === 'live' || s === 'published' || s === 'upcoming';
+  }).length || 0;
+
+  const liveNow = tournaments?.filter(t => (t.status || '').toLowerCase() === 'live').length || 0;
 
   // Let's get real teams if table exists, otherwise return 0 for now until Teams module is fully fleshed out
-  const { count: totalTeams } = await supabase
-    .from('teams')
-    .select('id', { count: 'exact' })
-    .catch(() => ({ count: 0 }));
+  let totalTeams = 0;
+  try {
+    const { count } = await supabase
+      .from('teams')
+      .select('id', { count: 'exact' });
+    totalTeams = count || 0;
+  } catch {
+    totalTeams = 0;
+  }
 
   // Get real users for total users if teams table is absent
-  const { count: pendingRegs } = await supabase
-    .from('tournament_registrations')
-    .select('id', { count: 'exact' })
-    .eq('status', 'PENDING')
-    .catch(() => ({ count: 0 }));
+  let pendingRegs = 0;
+  try {
+    const { count } = await supabase
+      .from('tournament_registrations')
+      .select('id', { count: 'exact' })
+      .eq('status', 'PENDING');
+    pendingRegs = count || 0;
+  } catch {
+    pendingRegs = 0;
+  }
 
-  const liveTournament = tournaments?.find(t => t.status === 'LIVE');
+  const liveTournament = tournaments?.find(t => (t.status || '').toUpperCase() === 'LIVE');
   let systemAlert = null;
   if (liveTournament) {
     // Get full tournament details for the alert
     const { data: liveData } = await supabase.from('tournaments').select('*').eq('id', liveTournament.id).single();
-    if (liveData) {
+    const typedLiveData = liveData as unknown as Tournament | null;
+    if (typedLiveData) {
       systemAlert = {
-        title: `${liveData.name} — LIVE NOW`,
-        subtitle: `Game: ${liveData.game} | Status: ACTIVE`,
-        link: `/admin/tournaments/${liveData.id}/manage`
+        title: `${typedLiveData.name} — LIVE NOW`,
+        subtitle: `Game: ${typedLiveData.game} | Status: ACTIVE`,
+        link: `/admin/tournaments/${typedLiveData.id}/manage`
       };
     }
   }

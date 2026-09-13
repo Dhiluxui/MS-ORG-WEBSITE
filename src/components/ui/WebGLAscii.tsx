@@ -52,13 +52,14 @@ const fragmentShaderSource = `
 
   void main() {
     // 1. Calculate Object-Cover UV mapping for the background image
-    vec2 st = gl_FragCoord.xy / u_resolution.xy;
+    vec2 safeRes = max(u_resolution, vec2(1.0, 1.0));
+    vec2 st = gl_FragCoord.xy / safeRes;
     st.y = 1.0 - st.y; // flip coordinates for sampling
     
     vec2 imgUv = st;
     if (u_imageLoaded == 1) {
-      float screenAspect = u_resolution.x / u_resolution.y;
-      float imgAspect = u_imageResolution.x / u_imageResolution.y;
+      float screenAspect = safeRes.x / safeRes.y;
+      float imgAspect = max(u_imageResolution.x, 1.0) / max(u_imageResolution.y, 1.0);
       
       if (screenAspect > imgAspect) {
         float scale = imgAspect / screenAspect;
@@ -81,12 +82,13 @@ const fragmentShaderSource = `
     // 2. Procedural Blob (The Revealer / Spotlight)
     // We constrain the blob to travel along the right side to act as a vertical scanner.
     // Calculate normalized coordinates (-1 to 1) and correct for aspect ratio
-    vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+    float minDim = max(min(safeRes.x, safeRes.y), 1.0);
+    vec2 p = (gl_FragCoord.xy - 0.5 * safeRes) / minDim;
     
     // Desktop (landscape): u_resolution.x > u_resolution.y
     // Mobile (portrait): u_resolution.y > u_resolution.x
     // We want the blob center on the right side.
-    float rightSideOffset = (u_resolution.x / min(u_resolution.x, u_resolution.y)) * 0.25;
+    float rightSideOffset = (safeRes.x / minDim) * 0.25;
     vec2 center = vec2(rightSideOffset, 0.0);
     
     // Slight horizontal drift
@@ -272,30 +274,35 @@ export function WebGLAscii({ imageSrc = '/hero-bg.webp?v=2' }: { imageSrc?: stri
     let animationFrameId: number;
     let startTime = performance.now();
 
-    let currentWidth = 0;
-    let currentHeight = 0;
+    const dpr = Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, 2);
+    const rect = canvas.getBoundingClientRect();
+    let currentWidth = Math.max(1, Math.floor((rect.width || canvas.clientWidth || 800) * dpr));
+    let currentHeight = Math.max(1, Math.floor((rect.height || canvas.clientHeight || 600) * dpr));
+    canvas.width = currentWidth;
+    canvas.height = currentHeight;
+    gl.viewport(0, 0, currentWidth, currentHeight);
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (let entry of entries) {
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const activeDpr = Math.min(window.devicePixelRatio || 1, 2);
         let width = 0;
         let height = 0;
         if (entry.devicePixelContentBoxSize) {
           width = entry.devicePixelContentBoxSize[0].inlineSize;
           height = entry.devicePixelContentBoxSize[0].blockSize;
         } else if (entry.contentBoxSize) {
-          width = entry.contentBoxSize[0].inlineSize * dpr;
-          height = entry.contentBoxSize[0].blockSize * dpr;
+          width = entry.contentBoxSize[0].inlineSize * activeDpr;
+          height = entry.contentBoxSize[0].blockSize * activeDpr;
         } else {
-          width = entry.contentRect.width * dpr;
-          height = entry.contentRect.height * dpr;
+          width = entry.contentRect.width * activeDpr;
+          height = entry.contentRect.height * activeDpr;
         }
         
         // Ensure integer values
         width = Math.floor(width);
         height = Math.floor(height);
         
-        if (canvas.width !== width || canvas.height !== height) {
+        if (width > 0 && height > 0 && (canvas.width !== width || canvas.height !== height)) {
           canvas.width = width;
           canvas.height = height;
           currentWidth = width;
@@ -310,14 +317,12 @@ export function WebGLAscii({ imageSrc = '/hero-bg.webp?v=2' }: { imageSrc?: stri
     let isVisible = true;
     let isAnimating = true;
     let pausedTime = 0;
-    let lastRenderTime = performance.now();
 
     const intersectionObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         isVisible = entry.isIntersecting;
         if (isVisible && !isAnimating) {
           isAnimating = true;
-          // Adjust start time by the time spent paused so the animation doesn't jump
           startTime += performance.now() - pausedTime;
           animationFrameId = requestAnimationFrame(render);
         } else if (!isVisible && isAnimating) {
@@ -331,7 +336,12 @@ export function WebGLAscii({ imageSrc = '/hero-bg.webp?v=2' }: { imageSrc?: stri
     intersectionObserver.observe(canvas);
 
     const render = (time: number) => {
-      if (!isAnimating) return;
+      if (!isAnimating || currentWidth <= 0 || currentHeight <= 0) {
+        if (isAnimating) {
+          animationFrameId = requestAnimationFrame(render);
+        }
+        return;
+      }
 
       gl.clearColor(0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
