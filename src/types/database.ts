@@ -266,6 +266,26 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['message_log']['Row'], 'id' | 'sent_at'>
         Update: Partial<Database['public']['Tables']['message_log']['Insert']>
       }
+      profiles: {
+        Row: {
+          id: string
+          tier: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Insert: {
+          id: string
+          tier?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tier?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
   }
 }

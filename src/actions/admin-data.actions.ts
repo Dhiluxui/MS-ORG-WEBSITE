@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 
 // Generic fetcher that swallows errors (e.g. if table missing) and returns empty array
 async function fetchTableSafe(tableName: string) {

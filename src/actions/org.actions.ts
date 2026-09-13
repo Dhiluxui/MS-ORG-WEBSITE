@@ -12,14 +12,13 @@ export async function upgradeOrgTier(tier: string) {
     return { success: false, error: 'User not authenticated' };
   }
 
-  // Update profile tier (assuming tier column exists in profiles)
+  // Update profile tier
   const { error } = await supabase
     .from('profiles')
-    .update({ tier: tier })
+    .update({ tier })
     .eq('id', user.id);
 
   if (error) {
-    // If the tier column doesn't exist yet, we just swallow it for V1 to prevent crashing
     console.warn("Could not update tier (maybe column is missing):", error.message);
   }
 
@@ -33,11 +32,15 @@ export async function getOrgTier() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return 'ROOKIE';
 
-  const { data } = await supabase
-    .from('profiles')
-    .select('tier')
-    .eq('id', user.id)
-    .single();
-    
-  return data?.tier || 'ROOKIE';
+  try {
+    const { data } = await supabase
+      .from('profiles')
+      .select('tier')
+      .eq('id', user.id)
+      .maybeSingle();
+      
+    return data?.tier || 'ROOKIE';
+  } catch {
+    return 'ROOKIE';
+  }
 }
